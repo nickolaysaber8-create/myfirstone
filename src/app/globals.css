@@ -1,0 +1,302 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Snapwrap palette. Ported verbatim from the original demo so the identity
+   is unchanged; only the delivery mechanism (Tailwind tokens) is new.
+   --------------------------------------------------------------------------- */
+:root {
+  --paper: #f3eff1;
+  --surface: #ffffff;
+  --surface-2: #e9e2e6;
+  --ink: #171318;
+  --ink-2: #5e5460;
+  --ink-3: #8c8290;
+  --line: #dcd2d8;
+  --magenta: #c80066;
+  --magenta-soft: #fbe4f0;
+  --cyan: #00819b;
+  --cyan-soft: #dcf1f5;
+  --ok: #1c7a52;
+  --shadow: 0 1px 2px rgba(23, 19, 24, 0.06), 0 12px 32px -18px rgba(23, 19, 24, 0.45);
+  --stage-sky: #efe9ec;
+  --stage-floor: #ddd4d9;
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111014;
+    --surface: #1a171c;
+    --surface-2: #241f27;
+    --ink: #f4eff2;
+    --ink-2: #afa4b0;
+    --ink-3: #847a87;
+    --line: #332b36;
+    --magenta: #ff5ba5;
+    --magenta-soft: #3a1428;
+    --cyan: #45c8e4;
+    --cyan-soft: #0e2f38;
+    --ok: #4ed19a;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -18px rgba(0, 0, 0, 0.9);
+    --stage-sky: #1c1920;
+    --stage-floor: #141218;
+    color-scheme: dark;
+  }
+}
+
+:root[data-theme="dark"] {
+  --paper: #111014;
+  --surface: #1a171c;
+  --surface-2: #241f27;
+  --ink: #f4eff2;
+  --ink-2: #afa4b0;
+  --ink-3: #847a87;
+  --line: #332b36;
+  --magenta: #ff5ba5;
+  --magenta-soft: #3a1428;
+  --cyan: #45c8e4;
+  --cyan-soft: #0e2f38;
+  --ok: #4ed19a;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 32px -18px rgba(0, 0, 0, 0.9);
+  --stage-sky: #1c1920;
+  --stage-floor: #141218;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-magenta: var(--magenta);
+  --color-magenta-soft: var(--magenta-soft);
+  --color-cyan: var(--cyan);
+  --color-cyan-soft: var(--cyan-soft);
+  --color-ok: var(--ok);
+
+  --font-display: var(--font-archivo), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-karla), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-dm-mono), ui-monospace, Menlo, monospace;
+
+  --shadow-panel: var(--shadow);
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 16px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.025em;
+    text-wrap: balance;
+    margin: 0;
+  }
+
+  button {
+    font: inherit;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  input,
+  textarea,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--magenta);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+}
+
+@utility wrapper {
+  max-width: 1120px;
+  margin-inline: auto;
+  padding-inline: 20px;
+}
+
+/* Small primitives that carry the original look. Kept as components rather
+   than long utility strings so the markup stays readable. */
+@layer components {
+  .sw-panel {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+  }
+
+  .sw-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+
+  .sw-eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--magenta);
+    display: flex;
+    align-items: center;
+    gap: 9px;
+  }
+
+  .sw-eyebrow::before {
+    content: "";
+    width: 26px;
+    height: 1px;
+    background: var(--magenta);
+  }
+
+  .sw-btn {
+    border: 1px solid transparent;
+    border-radius: 999px;
+    padding: 9px 18px;
+    font-weight: 700;
+    font-size: 14px;
+    background: var(--ink);
+    color: var(--paper);
+    transition: transform 0.12s ease, filter 0.12s ease;
+  }
+
+  .sw-btn:hover {
+    filter: brightness(1.12);
+  }
+
+  .sw-btn:active {
+    transform: translateY(1px);
+  }
+
+  .sw-btn[disabled] {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .sw-btn-accent {
+    background: var(--magenta);
+    color: #fff;
+  }
+
+  .sw-chip {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    border-radius: 999px;
+    padding: 6px 13px;
+    font-size: 13px;
+    color: var(--ink-2);
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+
+  .sw-chip:hover {
+    border-color: var(--ink-3);
+    color: var(--ink);
+  }
+
+  .sw-chip[aria-pressed="true"] {
+    background: var(--magenta);
+    border-color: var(--magenta);
+    color: #fff;
+    font-weight: 600;
+  }
+
+  .sw-field {
+    width: 100%;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 10px 12px;
+  }
+
+  .sw-spec {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--ink-2);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 3px 8px;
+  }
+
+  .sw-viewbtn {
+    border: 1px solid var(--line);
+    background: var(--paper);
+    border-radius: 8px;
+    padding: 5px 12px;
+    font-size: 12px;
+    font-family: var(--font-mono);
+    color: var(--ink-2);
+    transition: border-color 0.12s, color 0.12s;
+  }
+
+  .sw-viewbtn:hover {
+    border-color: var(--ink-3);
+    color: var(--ink);
+  }
+
+  .sw-viewbtn[aria-pressed="true"] {
+    border-color: var(--magenta);
+    color: var(--magenta);
+  }
+}
+
+@keyframes sw-sheen {
+  0% {
+    transform: translateX(-60%);
+  }
+  100% {
+    transform: translateX(160%);
+  }
+}
+
+.sw-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in srgb, var(--surface) 70%, transparent) 50%,
+    transparent 70%
+  );
+  animation: sw-sheen 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sw-sheen::after {
+    animation: none;
+  }
+}

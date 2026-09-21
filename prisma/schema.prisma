@@ -1,0 +1,95 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum GenerationStatus {
+  PENDING
+  RUNNING
+  READY
+  FAILED
+}
+
+enum DesignSource {
+  /// Produced by the image model from a customer prompt.
+  GENERATED
+  /// Drawn in-house and pre-rendered, so the gallery costs nothing to browse.
+  CURATED
+}
+
+/// One customer request for wrap designs. Four designs come out of it.
+model Generation {
+  id        String           @id @default(cuid())
+  sessionId String
+  /// Exactly what the customer typed, kept for the studio and for support.
+  prompt    String
+  /// Normalised prompt + reference + house-style version. The cache key.
+  promptHash String
+  status    GenerationStatus @default(PENDING)
+  /// Customer-facing failure text. Never a stack trace.
+  error     String?
+  provider  String
+  model     String
+  /// Variants finished so far, which is what the progress bar reads.
+  completed Int              @default(0)
+  total     Int              @default(4)
+  createdAt DateTime         @default(now())
+  finishedAt DateTime?
+
+  referenceId String?
+  reference   ReferenceImage? @relation(fields: [referenceId], references: [id], onDelete: SetNull)
+  designs     Design[]
+
+  /// Cache lookups want the newest ready row for a hash; rate limiting wants
+  /// one session's recent rows. Not unique — a failure must not poison the
+  /// cache slot and block every later retry of the same prompt.
+  @@index([promptHash, status, createdAt])
+  @@index([sessionId, createdAt])
+}
+
+/// One wrap design: a seamless tile stored at print resolution, plus the
+/// downscaled copy the browser actually loads.
+model Design {
+  id      String       @id @default(cuid())
+  source  DesignSource @default(GENERATED)
+  /// Stable handle for curated designs, e.g. "batroun-blue". Null when generated.
+  slug    String?      @unique
+  name    String
+  /// Which composition directive produced it, so the four read as variations.
+  variant String
+  palette String[]
+  /// Storage keys. The print file never goes near the browser.
+  printKey   String
+  previewKey String
+  width      Int
+  height     Int
+  seed       String?
+  createdAt  DateTime @default(now())
+
+  generationId String?
+  generation   Generation? @relation(fields: [generationId], references: [id], onDelete: Cascade)
+
+  @@index([source, createdAt])
+  @@index([generationId])
+}
+
+/// A customer photo passed to the model as an image input, so it matches the
+/// palette and mood rather than having colours sampled off it.
+model ReferenceImage {
+  id         String   @id @default(cuid())
+  sessionId  String
+  storageKey String
+  mimeType   String
+  bytes      Int
+  /// Hash of the file, so the same photo with the same prompt hits the cache.
+  contentHash String
+  createdAt  DateTime @default(now())
+
+  generations Generation[]
+
+  @@index([sessionId, createdAt])
+}

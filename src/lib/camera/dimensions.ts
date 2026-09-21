@@ -75,6 +75,41 @@ export const PRINT_PX = {
 export const PREVIEW_PX = { width: 1536, height: Math.round(1536 / WRAP_ASPECT) } as const;
 
 /**
+ * The generated artwork is a tile, not the whole band. The print shop quotes a
+ * 112 x 38 mm footprint, which is narrower than the 292.3 mm the wrap has to
+ * travel, so the tile is stood up to the full body height and repeated around.
+ * That is why house style demands seamless left and right edges: the join is
+ * not one glue seam, it recurs.
+ */
+export const TILE_MM = { width: 112, height: 38 } as const;
+export const TILE_ASPECT = TILE_MM.width / TILE_MM.height;
+
+/** The tile once scaled to cover the full height of the body. */
+export const TILE_ON_WRAP_MM = {
+  width: TILE_MM.width * (WRAP_MM.height / TILE_MM.height),
+  height: WRAP_MM.height,
+} as const;
+
+/** How many times the tile goes round. Fractional, which seamlessness allows. */
+export const TILE_REPEATS = PERIMETER_MM / TILE_ON_WRAP_MM.width;
+
+/**
+ * Rendered at the size the tile actually occupies once placed, so the wrap
+ * lands at a true 300 DPI rather than 300 DPI of a footprint that then gets
+ * enlarged.
+ */
+export const TILE_PRINT_PX = {
+  width: pxAt(PRINT_DPI, TILE_ON_WRAP_MM.width),
+  height: pxAt(PRINT_DPI, TILE_ON_WRAP_MM.height),
+} as const;
+
+/** Downscaled copy the browser gets. The print file never leaves the server. */
+export const TILE_PREVIEW_PX = {
+  width: 1024,
+  height: Math.round(1024 / TILE_ASPECT),
+} as const;
+
+/**
  * Hardware that punches through the wrap. Positions are in body space:
  * x right, y up, z toward the front, all measured from the body centre.
  */

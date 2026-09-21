@@ -8,14 +8,18 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "poster": "node scripts/render-poster.mjs"
+    "poster": "node scripts/render-poster.mjs",
+    "seed": "prisma db seed"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1136.0",
+    "@prisma/client": "^6.19.3",
     "@react-three/drei": "^10.7.8",
     "@react-three/fiber": "^9.7.0",
     "next": "^16.3.5",
     "react": "19.2.0",
     "react-dom": "19.2.0",
+    "server-only": "^0.0.1",
     "three": "^0.186.0",
     "three-stdlib": "^2.36.1"
   },
@@ -28,8 +32,13 @@
     "eslint": "^9.37.0",
     "eslint-config-next": "^16.3.5",
     "playwright": "^1.63.0",
+    "prisma": "^6.19.3",
     "sharp": "^0.35.4",
     "tailwindcss": "^4.1.14",
+    "tsx": "^4.23.15",
     "typescript": "^5.9.3"
+  },
+  "prisma": {
+    "seed": "node --conditions=react-server --import tsx prisma/seed.ts"
   }
 }

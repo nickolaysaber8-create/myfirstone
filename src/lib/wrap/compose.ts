@@ -103,22 +103,14 @@ function drawPersonalisation(
   const box = frontTextBox();
   const left = box.left * w;
   const maxWidth = box.width * w;
-  const boxTop = box.top * h;
-  const boxBottom = box.bottom * h;
-
-  // Both lines live inside the clear zone, with the date on the last line and
-  // the name sitting on top of it.
-  const dateSize = h * 0.055;
-  const dateBaseline = date ? boxBottom - dateSize * 0.25 : boxBottom;
-  const nameRoom = (date ? dateBaseline - dateSize * 1.35 : boxBottom) - boxTop;
-  const nameSize = Math.min(nameRoom * 0.86, (maxWidth / Math.max(name?.length ?? 5, 5)) * 1.7);
-  const nameBaseline = boxTop + nameRoom * 0.9;
+  const nameBaseline = h * (date ? 0.8 : 0.85);
+  const dateBaseline = h * 0.902;
 
   ctx.save();
   ctx.textBaseline = "alphabetic";
 
   if (name) {
-    const size = nameSize;
+    const size = Math.min(h * 0.145, (maxWidth / Math.max(name.length, 5)) * 1.7);
     const light = backdropIsLight(ctx, left, nameBaseline - size, maxWidth, size * 1.2);
     ctx.font = `800 ${size}px Archivo, ui-sans-serif, sans-serif`;
     // Printed type, not a sticker: a soft halo carries it over busy artwork
@@ -130,7 +122,7 @@ function drawPersonalisation(
   }
 
   if (date) {
-    const size = dateSize;
+    const size = h * 0.062;
     const light = backdropIsLight(ctx, left, dateBaseline - size, maxWidth * 0.5, size * 1.2);
     ctx.font = `500 ${size}px "DM Mono", ui-monospace, monospace`;
     ctx.shadowColor = light ? "rgba(255,255,255,.85)" : "rgba(0,0,0,.6)";

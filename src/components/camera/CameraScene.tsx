@@ -111,8 +111,10 @@ function ViewDirector({ view, idle, onUserInteract }: DirectorProps) {
     }
 
     if (!idle) return;
+    // Turns toward the front first. Starting at three-quarter and drifting the
+    // other way would open on the back, which is the least interesting side.
     const s = scratch.current.setFromVector3(camera.position.clone().sub(ORIGIN));
-    s.theta -= IDLE_SPEED * delta;
+    s.theta += IDLE_SPEED * delta;
     camera.position.setFromSpherical(s).add(ORIGIN);
     camera.lookAt(ORIGIN);
   });

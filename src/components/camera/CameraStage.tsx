@@ -5,20 +5,22 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion, useStageVisibility } from "./hooks";
 import { VIEW_LABELS, VIEW_ORDER, type ViewName } from "./viewPresets";
-import { renderWrap, type Personalisation, type WrapPreset } from "@/lib/wrap/presets";
+import { composeWrap, loadTile, type Personalisation } from "@/lib/wrap/compose";
+import type { DesignDTO } from "@/lib/generation/types";
 
 const CameraScene = dynamic(() => import("./CameraScene").then((m) => m.CameraScene), {
   ssr: false,
 });
 
 type Props = {
-  preset: WrapPreset;
+  design: DesignDTO | null;
   personalisation: Personalisation;
   designCode: string;
 };
 
-export function CameraStage({ preset, personalisation, designCode }: Props) {
+export function CameraStage({ design, personalisation, designCode }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const tileCache = useRef(new Map<string, HTMLImageElement>());
   const [wrapSource, setWrapSource] = useState<HTMLCanvasElement | null>(null);
   const [view, setView] = useState<ViewName>("three-quarter");
   const [sceneReady, setSceneReady] = useState(false);
@@ -29,33 +31,44 @@ export function CameraStage({ preset, personalisation, designCode }: Props) {
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
-    if (!shouldLoad) return;
+    if (!shouldLoad || !design) return;
 
     let cancelled = false;
-    const draw = () => {
+    const cache = tileCache.current;
+
+    const paint = async () => {
+      let tile = cache.get(design.previewUrl);
+      if (!tile) {
+        try {
+          tile = await loadTile(design.previewUrl);
+        } catch {
+          return;
+        }
+        cache.set(design.previewUrl, tile);
+      }
       if (cancelled) return;
+
+      // Fonts matter: the customer's name is drawn into the texture, not laid
+      // over it in the DOM, so it has to wait for Archivo to arrive.
+      await document.fonts?.ready?.catch(() => undefined);
+      if (cancelled) return;
+
       // A new canvas each time, so the scene sees a genuinely new source and
       // the previous one becomes collectable along with its textures.
-      setWrapSource(renderWrap(document.createElement("canvas"), { preset, personalisation }));
+      setWrapSource(composeWrap(document.createElement("canvas"), tile, personalisation));
     };
 
-    // Fonts matter: the customer's name is drawn into the texture, not laid
-    // over it in the DOM, so it has to wait for Archivo to arrive.
-    if (document.fonts?.ready) document.fonts.ready.then(draw).catch(draw);
-    else draw();
-
+    void paint();
     return () => {
       cancelled = true;
     };
-  }, [shouldLoad, preset, personalisation]);
+  }, [shouldLoad, design, personalisation]);
 
   return (
     <div className="sw-panel overflow-hidden" ref={containerRef}>
       <div
         className="relative"
-        style={{
-          background: "linear-gradient(170deg, var(--stage-sky), var(--stage-floor))",
-        }}
+        style={{ background: "linear-gradient(170deg, var(--stage-sky), var(--stage-floor))" }}
       >
         <div className="relative aspect-[4/3] w-full sm:aspect-[5/4]" data-stage="3d">
           {(!sceneReady || !wrapSource) && (
@@ -103,7 +116,7 @@ export function CameraStage({ preset, personalisation, designCode }: Props) {
         </p>
 
         <div className="mt-4 flex items-baseline justify-between gap-3 border-t border-[var(--line)] pt-3 text-[13px] text-[var(--ink-2)]">
-          <span className="font-display font-bold text-[var(--ink)]">{preset.name}</span>
+          <span className="font-display font-bold text-[var(--ink)]">{design?.name ?? "—"}</span>
           <span className="font-mono">{designCode}</span>
         </div>
 

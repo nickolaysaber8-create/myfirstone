@@ -1,5 +1,12 @@
+import { prisma } from "@/lib/db";
+import { storage } from "@/lib/storage";
 import { Studio } from "@/components/studio/Studio";
 import { PackCalculator } from "@/components/ui/PackCalculator";
+import type { DesignDTO, VariantKey } from "@/lib/generation/types";
+
+// Reads the gallery out of the database on every request, so a design added
+// in the studio shows up without a rebuild.
+export const dynamic = "force-dynamic";
 
 const STAGES = [
   {
@@ -24,7 +31,29 @@ const STAGES = [
   },
 ];
 
-export default function Home() {
+/**
+ * The gallery is read here rather than fetched from the page, so the first
+ * paint already carries real designs instead of an empty grid and a spinner.
+ */
+async function curatedGallery(): Promise<DesignDTO[]> {
+  const designs = await prisma.design.findMany({
+    where: { source: "CURATED" },
+    orderBy: { createdAt: "asc" },
+  });
+  const store = await storage();
+  return designs.map((design) => ({
+    id: design.slug ?? design.id,
+    name: design.name,
+    variant: design.variant as VariantKey,
+    palette: design.palette,
+    previewUrl: store.publicUrl(design.previewKey),
+    source: "CURATED" as const,
+  }));
+}
+
+export default async function Home() {
+  const gallery = await curatedGallery();
+
   return (
     <>
       <header className="sticky top-0 z-30 border-b border-[var(--line)] backdrop-blur-[10px] [background:color-mix(in_srgb,var(--paper)_88%,transparent)]">
@@ -68,7 +97,7 @@ export default function Home() {
             check every side, then we print it and ship it anywhere in Lebanon.
           </p>
 
-          <Studio />
+          <Studio gallery={gallery} />
         </div>
 
         <section id="how" className="border-t border-[var(--line)] py-14">

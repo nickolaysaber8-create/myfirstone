@@ -26,7 +26,9 @@ export const FOV = 30;
  */
 export function fitDistance(aspect: number): number {
   const widest = 11.8;
-  const framed = 0.76;
+  // Framed for the body seen broadside. Every other angle projects narrower,
+  // so fitting the widest case exactly leaves the side views looking tiny.
+  const framed = 0.86;
   const distance = widest / (2 * Math.tan((FOV * Math.PI) / 360) * Math.max(aspect, 0.4) * framed);
   return Math.min(34, Math.max(17, distance));
 }

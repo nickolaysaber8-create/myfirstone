@@ -94,13 +94,23 @@ export function cutoutRects(): CutoutRect[] {
 }
 
 /**
- * The clear area on the front face for customer text: below the lens and
- * flash, inside the flat run so nothing bends around a corner.
+ * The clear area on the front face for customer text. It starts below the
+ * lens, not beside it: the lens is a die-cut hole, so anything overlapping it
+ * is not small print, it is missing print.
  */
 export function frontTextBox() {
+  const { lens } = CUTOUTS;
   const left = uOnFace("front", -BODY.width / 2 + BODY.cornerRadius + 4);
   const right = uOnFace("front", BODY.width / 2 - BODY.cornerRadius - 4);
-  const top = 1 - vForY(-12);
-  const bottom = 1 - vForY(-BODY.height / 2 + 4);
-  return { left, right, top, bottom, width: right - left, height: bottom - top };
+  // 1.5 mm of clearance under the lens bezel, and clear of the bottom chamfer.
+  const topY = lens.y - lens.diameter / 2 - 1.5;
+  const bottomY = -BODY.height / 2 + BODY.edgeChamfer + 1;
+  return {
+    left,
+    right,
+    top: 1 - vForY(topY),
+    bottom: 1 - vForY(bottomY),
+    width: right - left,
+    height: vForY(topY) - vForY(bottomY),
+  };
 }
